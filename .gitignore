@@ -51,6 +51,7 @@ next-env.d.ts
 cookies.txt
 skills-lock.json
 *phase3-diff.sql
+/xampp-installer.exe
 
 # editor / ai session artifacts
 /.claude/

@@ -93,6 +93,10 @@ Source: "..\scripts\restart-pos.bat"; DestDir: "{app}\scripts"; Flags: ignorever
 Source: "..\scripts\monitor-pos.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\scripts\installer-post-install.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\scripts\setup-simple.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\scripts\install-xampp.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\scripts\start-xampp-mysql.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\scripts\pos-setup-master.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\scripts\update-pos.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
 
 ; Convenience batch files at app root
 Source: "..\setup.bat"; DestDir: "{app}"; Flags: ignoreversion
@@ -116,7 +120,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\scripts\{#MyAppExeName}"; T
 Name: "{autodesktop}\{#MyAppName} Setup"; Filename: "{app}\scripts\setup-simple.bat"; Tasks: desktopicon; WorkingDir: "{app}"
 
 [Run]
-Filename: "{app}\scripts\setup-simple.bat"; Description: "Setting up POS System"; StatusMsg: "Please wait while POS System is configured..."; Flags: waituntilterminated
+Filename: "{app}\scripts\pos-setup-master.bat"; Description: "Setting up POS System (XAMPP + Database + Application)"; StatusMsg: "Please wait while POS System is configured. This may take several minutes..."; Flags: waituntilterminated
 Filename: "{app}\scripts\install-service.bat"; Parameters: "{app} {code:GetAutoStartFlag}"; Description: "Configure auto-start"; StatusMsg: "Configuring auto-start..."; Flags: runhidden waituntilterminated
 
 [UninstallRun]

@@ -35,17 +35,23 @@ if %errorlevel% neq 0 (
 )
 echo  OK - Node.js found.
 
-REM Check MySQL
+REM Try to start MySQL if not running
 echo [2/8] Checking MySQL/MariaDB...
 call scripts\check-mysql.bat >"%LOG_DIR%\mysql-check.log" 2>&1
 if %errorlevel% neq 0 (
-    type "%LOG_DIR%\mysql-check.log"
-    echo.
-    echo  ERROR: MySQL is not running.
-    echo  Please install XAMPP and start MySQL service.
-    echo  Download: https://www.apachefriends.org/
-    pause
-    exit /b 1
+    echo  MySQL not running. Trying to start XAMPP MySQL...
+    call scripts\start-xampp-mysql.bat >"%LOG_DIR%\mysql-start.log" 2>&1
+    timeout /t 5 /nobreak >nul
+    call scripts\check-mysql.bat >"%LOG_DIR%\mysql-check.log" 2>&1
+    if %errorlevel% neq 0 (
+        type "%LOG_DIR%\mysql-check.log"
+        echo.
+        echo  ERROR: MySQL could not be started.
+        echo  Please install XAMPP and start MySQL service manually.
+        echo  Download: https://www.apachefriends.org/
+        pause
+        exit /b 1
+    )
 )
 set /p MYSQL_BIN=<"%LOG_DIR%\mysql-check.log"
 echo  OK - MySQL found at %MYSQL_BIN%
@@ -67,6 +73,8 @@ echo [4/8] Checking custom password...
 if exist "%APP_DIR%\mysql-password.txt" (
     set /p DB_PASS=<"%APP_DIR%\mysql-password.txt"
     echo  Using password from mysql-password.txt
+) else (
+    echo  No custom password file. Using empty password.
 )
 
 REM Create database
@@ -129,6 +137,7 @@ if %errorlevel% neq 0 (
 if %TABLE_COUNT% gtr 0 (
     echo  Database already has %TABLE_COUNT% tables. Skipping seed to protect data.
 ) else (
+    echo  Seeding default data...
     npm run db:seed >"%LOG_DIR%\db-seed.log" 2>&1
     if %errorlevel% neq 0 (
         echo  ERROR: db:seed failed.
@@ -159,9 +168,9 @@ echo  Starting POS System server...
 echo.
 
 start "" "%APP_DIR%\scripts\start-pos.bat"
-timeout /t 5 /nobreak >nul
+timeout /t 8 /nobreak >nul
 
-REM Open browser to install or login
+REM Open browser
 echo  Opening browser...
 start "" "http://localhost:3000"
 
