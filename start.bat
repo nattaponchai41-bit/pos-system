@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title POS System
+title POS System - Start Server
 color 0F
 echo.
 echo  ===========================================
@@ -12,4 +12,5 @@ echo.
 cd /d "%~dp0"
 npm run start
 echo.
+echo  Server stopped. Press any key to close.
 pause

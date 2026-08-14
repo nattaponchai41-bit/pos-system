@@ -92,12 +92,14 @@ Source: "..\scripts\start-pos.bat"; DestDir: "{app}\scripts"; Flags: ignoreversi
 Source: "..\scripts\restart-pos.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\scripts\monitor-pos.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\scripts\installer-post-install.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\scripts\setup-simple.bat"; DestDir: "{app}\scripts"; Flags: ignoreversion
 
 ; Convenience batch files at app root
 Source: "..\setup.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\start.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\update.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dev.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\update-pos.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Documentation
 Source: "..\INSTALL.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
@@ -105,14 +107,17 @@ Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesn
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\scripts\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{group}\{#MyAppName} Setup"; Filename: "{app}\scripts\setup-simple.bat"; WorkingDir: "{app}"
 Name: "{group}\{#MyAppName} Website"; Filename: "{#MyAppURL}"
 Name: "{group}\Restart POS"; Filename: "{app}\scripts\restart-pos.bat"; Parameters: "{app}"; WorkingDir: "{app}"
 Name: "{group}\Backup Database"; Filename: "{app}\scripts\backup-db.bat"; Parameters: "{code:GetMySQLBin|{app}} pos_system root "" {app}\backups"; WorkingDir: "{app}"
 Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\scripts\{#MyAppExeName}"; Tasks: desktopicon; WorkingDir: "{app}"
+Name: "{autodesktop}\{#MyAppName} Setup"; Filename: "{app}\scripts\setup-simple.bat"; Tasks: desktopicon; WorkingDir: "{app}"
 
 [Run]
-Filename: "{app}\scripts\installer-post-install.bat"; Parameters: "{app} {code:GetAutoStartFlag}"; Description: "Installing POS System"; StatusMsg: "Installing dependencies and configuring POS System..."; Flags: runhidden waituntilterminated
+Filename: "{app}\scripts\setup-simple.bat"; Description: "Setting up POS System"; StatusMsg: "Please wait while POS System is configured..."; Flags: waituntilterminated
+Filename: "{app}\scripts\install-service.bat"; Parameters: "{app} {code:GetAutoStartFlag}"; Description: "Configure auto-start"; StatusMsg: "Configuring auto-start..."; Flags: runhidden waituntilterminated
 
 [UninstallRun]
 Filename: "{app}\scripts\uninstall-service.bat"; Parameters: "{app}"; RunOnceId: "StopPOSService"; Flags: runhidden

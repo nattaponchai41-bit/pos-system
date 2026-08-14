@@ -2,7 +2,7 @@
 chcp 65001 >nul
 title POS System Server
 color 0F
-setlocal
+setlocal EnableDelayedExpansion
 
 REM Wait for MySQL to be ready (max 60 seconds)
 set "MYSQL_BIN="
@@ -24,4 +24,15 @@ if not "%MYSQL_BIN%"=="" (
 )
 
 cd /d "%~dp0.."
+echo.
+echo  ===========================================
+echo  Starting POS System at http://localhost:3000
+echo  ===========================================
+echo.
+echo  Do not close this window while POS is running.
+echo.
 npm run start
+
+echo.
+echo  Server stopped. Press any key to close.
+pause
