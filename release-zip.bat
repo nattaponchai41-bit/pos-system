@@ -6,7 +6,7 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0.."
 set "PROJECT_DIR=%CD%"
 set "RELEASE_DIR=%PROJECT_DIR%\releases"
-for /f "tokens=*" %%a in ('node -e "console.log(require('./package.json').version)"') do set "VERSION=%%a"
+set "VERSION=0.1.0"
 set "ZIP_NAME=pos-system-v%VERSION%.zip"
 set "ZIP_PATH=%RELEASE_DIR%\%ZIP_NAME%"
 
@@ -22,36 +22,40 @@ echo  Version: %VERSION%
 echo  Output:  %ZIP_PATH%
 echo.
 
-REM Check if 7zip exists
-set "ZIP_TOOL="
-if exist "C:\Program Files\7-Zip\7z.exe" set "ZIP_TOOL=C:\Program Files\7-Zip\7z.exe"
-if exist "C:\Program Files (x86)\7-Zip\7z.exe" set "ZIP_TOOL=C:\Program Files (x86)\7-Zip\7z.exe"
-
-if "%ZIP_TOOL%"=="" (
-    echo  ERROR: 7-Zip not found.
-    echo  Please install 7-Zip from https://www.7-zip.org/
-    pause
-    exit /b 1
-)
-
 REM Build production first
 echo [1/3] Building production...
 npm run build >"%PROJECT_DIR%\logs\release-build.log" 2>&1
 if %errorlevel% neq 0 (
+    if not exist "%PROJECT_DIR%\logs" mkdir "%PROJECT_DIR%\logs"
     echo  ERROR: Build failed. See logs\release-build.log
     pause
     exit /b 1
 )
 echo  OK - Build completed.
 
-REM Create clean zip excluding dev artifacts
-echo [2/3] Creating ZIP file...
+REM Create clean zip using PowerShell (no 7-Zip required)
+echo [2/3] Creating ZIP file with PowerShell...
 if exist "%ZIP_PATH%" del "%ZIP_PATH%"
 
-"%ZIP_TOOL%" a -r -tzip -xr!node_modules -xr!.next -xr!.git -xr!.claude -xr!.agents -xr!.windsurf -xr!backups -xr!logs -xr!releases -xr!test-*.pdf -xr!POS-System-Setup.exe -xr!xampp-installer.exe -xr!cookies.txt -xr!skills-lock.json -xr!*.log "%ZIP_PATH%" "%PROJECT_DIR%\*"
+REM Use PowerShell Compress-Archive, excluding unwanted folders
+powershell -NoProfile -ExecutionPolicy Bypass -Command "
+$ErrorActionPreference = 'Stop';
+$source = '%PROJECT_DIR%';
+$dest = '%ZIP_PATH%';
+$excludes = @('node_modules', '.next', '.git', '.claude', '.agents', '.windsurf', 'backups', 'logs', 'releases', 'test-*.pdf', 'POS-System-Setup.exe', 'xampp-installer.exe', 'cookies.txt', 'skills-lock.json', '*.log');
+$items = Get-ChildItem -Path $source -Force | Where-Object {
+    $name = $_.Name;
+    $exclude = $false;
+    foreach ($pattern in $excludes) {
+        if ($name -like $pattern) { $exclude = $true; break; }
+    }
+    -not $exclude
+};
+Compress-Archive -Path ($items | Select-Object -ExpandProperty FullName) -DestinationPath $dest -Force;
+"
 
 if %errorlevel% neq 0 (
-    echo  ERROR: Failed to create ZIP.
+    echo  ERROR: Failed to create ZIP with PowerShell.
     pause
     exit /b 1
 )
