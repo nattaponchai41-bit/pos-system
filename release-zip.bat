@@ -3,8 +3,21 @@ chcp 65001 >nul
 title POS System - Create Release ZIP
 setlocal EnableDelayedExpansion
 
-cd /d "%~dp0.."
-set "PROJECT_DIR=%CD%"
+REM Determine project directory whether run from root or scripts folder
+set "CURRENT_DIR=%CD%"
+if exist "%CURRENT_DIR%\package.json" (
+    set "PROJECT_DIR=%CURRENT_DIR%"
+) else if exist "%CURRENT_DIR%\..\package.json" (
+    cd /d "%CURRENT_DIR%\.."
+    set "PROJECT_DIR=%CD%"
+) else (
+    echo ERROR: Cannot find project root (package.json not found).
+    pause
+    exit /b 1
+)
+
+cd /d "%PROJECT_DIR%"
+
 set "RELEASE_DIR=%PROJECT_DIR%\releases"
 set "VERSION=0.1.0"
 set "ZIP_NAME=pos-system-v%VERSION%.zip"
@@ -18,6 +31,7 @@ echo  ===========================================
 echo  POS System - Create Release ZIP
 echo  ===========================================
 echo.
+echo  Project: %PROJECT_DIR%
 echo  Version: %VERSION%
 echo  Output:  %ZIP_PATH%
 echo.
