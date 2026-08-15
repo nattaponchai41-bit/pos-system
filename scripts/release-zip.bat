@@ -22,12 +22,15 @@ echo  Version: %VERSION%
 echo  Output:  %ZIP_PATH%
 echo.
 
+REM Ensure log directory exists before build
+if not exist "%PROJECT_DIR%\logs" mkdir "%PROJECT_DIR%\logs"
+
 REM Build production first
 echo [1/3] Building production...
-npm run build >"%PROJECT_DIR%\logs\release-build.log" 2>&1
+node "%PROJECT_DIR%\node_modules\next\dist\bin\next" build >"%PROJECT_DIR%\logs\release-build.log" 2>&1
 if %errorlevel% neq 0 (
-    if not exist "%PROJECT_DIR%\logs" mkdir "%PROJECT_DIR%\logs"
     echo  ERROR: Build failed. See logs\release-build.log
+    type "%PROJECT_DIR%\logs\release-build.log"
     pause
     exit /b 1
 )
