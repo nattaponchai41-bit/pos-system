@@ -93,11 +93,13 @@ export default function ReceiptPage() {
   const width = store?.receiptWidth === '58mm' ? '58mm' : '80mm'
   const remaining = Number(invoice.total) - Number(invoice.paidAmount)
 
-  function fmt(n: number) {
+  function fmt(n: number | null | undefined) {
+    if (n == null) return '-'
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
-  function fmtWhole(n: number) {
+  function fmtWhole(n: number | null | undefined) {
+    if (n == null) return '-'
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   }
 

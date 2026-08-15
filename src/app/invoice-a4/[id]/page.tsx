@@ -83,11 +83,13 @@ export default function InvoiceA4Page() {
       })
   }, [id])
 
-  function fmt(n: number) {
+  function fmt(n: number | null | undefined) {
+    if (n == null) return '-'
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
-  function fmtWhole(n: number) {
+  function fmtWhole(n: number | null | undefined) {
+    if (n == null) return '-'
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   }
 

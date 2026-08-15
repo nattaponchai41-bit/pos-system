@@ -16,7 +16,8 @@ interface Customer {
   isActive: boolean
 }
 
-function fmt(n: number) {
+function fmt(n: number | null | undefined) {
+  if (n == null) return '-'
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
