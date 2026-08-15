@@ -101,18 +101,22 @@ del tmp_backup.txt >nul 2>&1
 echo  Backup saved: %DUMP_FILE%
 >> "%LOG_FILE%" echo Backup saved: %DUMP_FILE%
 
-REM Pull latest code
+REM Decide update method: git pull or ZIP
 echo.
-echo [3/7] Pulling latest code from GitHub...
-if not exist "%APP_DIR%\.git" (
-    echo.
-    echo  ERROR: This folder is not a git repository.
-    echo  Please use git clone first, or copy the new code manually.
-    >> "%LOG_FILE%" echo ERROR: Not a git repo
-    pause
-    exit /b 1
+echo [3/7] Checking update source...
+if exist "%APP_DIR%\.git" (
+    echo  Git repository found. Using git pull...
+    >> "%LOG_FILE%" echo Using git pull
+    goto GIT_UPDATE
+) else (
+    echo  No git repository found. Looking for update ZIP...
+    >> "%LOG_FILE%" echo No git repo, looking for ZIP
+    goto ZIP_UPDATE
 )
 
+:GIT_UPDATE
+echo.
+echo [4/7] Pulling latest code from GitHub...
 git config --global --add safe.directory "%APP_DIR%" >nul 2>&1
 
 git status --short >tmp_status.txt
@@ -139,10 +143,44 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 echo  OK - Code updated.
+goto FINISH_UPDATE
 
-REM Install dependencies
+:ZIP_UPDATE
 echo.
-echo [4/7] Installing dependencies...
+echo [4/7] Looking for update ZIP file...
+set "UPDATE_ZIP="
+for %%a in ("%APP_DIR%\pos-system-*.zip") do (
+    if "!UPDATE_ZIP!"=="" set "UPDATE_ZIP=%%a"
+)
+
+if "%UPDATE_ZIP%"=="" (
+    echo.
+    echo  No update ZIP found.
+    echo  Please download the latest pos-system-vX.X.X.zip from Google Drive
+    echo  and place it in this folder: %APP_DIR%
+    echo.
+    echo  Then run update-pos.bat again.
+    >> "%LOG_FILE%" echo ERROR: No update ZIP found
+    pause
+    exit /b 1
+)
+
+echo  Found update ZIP: %UPDATE_ZIP%
+>> "%LOG_FILE%" echo Found ZIP: %UPDATE_ZIP%
+
+call scripts\apply-zip-update.bat "%UPDATE_ZIP%"
+if %errorlevel% neq 0 (
+    echo.
+    echo  ERROR: ZIP update failed.
+    >> "%LOG_FILE%" echo ERROR: ZIP update failed
+    pause
+    exit /b 1
+)
+goto END
+
+:FINISH_UPDATE
+echo.
+echo [5/7] Installing dependencies...
 npm install >> "%LOG_FILE%" 2>&1
 if %errorlevel% neq 0 (
     echo.
@@ -153,9 +191,8 @@ if %errorlevel% neq 0 (
 )
 echo  OK - Dependencies updated.
 
-REM Generate Prisma client
 echo.
-echo [5/7] Generating Prisma client...
+echo [6/7] Generating Prisma client...
 npx.cmd prisma generate >> "%LOG_FILE%" 2>&1
 if %errorlevel% neq 0 (
     echo.
@@ -166,9 +203,8 @@ if %errorlevel% neq 0 (
 )
 echo  OK - Prisma client generated.
 
-REM Update database schema (safe - no data loss)
 echo.
-echo [6/7] Updating database schema (safe - does NOT delete data)...
+echo [7/7] Updating database schema and building (no data loss)...
 npx.cmd prisma migrate deploy >> "%LOG_FILE%" 2>&1
 if %errorlevel% neq 0 (
     echo.
@@ -180,9 +216,6 @@ if %errorlevel% neq 0 (
 )
 echo  OK - Database schema updated.
 
-REM Build production
-echo.
-echo [7/7] Building production application...
 npm run build >> "%LOG_FILE%" 2>&1
 if %errorlevel% neq 0 (
     echo.
@@ -214,5 +247,6 @@ echo.
 echo  Opening POS System in browser...
 start "" "http://localhost:3000"
 
+:END
 pause
 exit /b 0
