@@ -1,10 +1,5 @@
 import 'dotenv/config'
-import { PrismaClient } from '@/generated/prisma/client'
-import { PrismaMariaDb } from '@prisma/adapter-mariadb'
-
-const prisma = new PrismaClient({
-  adapter: new PrismaMariaDb(process.env.DATABASE_URL!),
-})
+import { prisma } from '../src/lib/prisma'
 
 async function main() {
   const counts = await prisma.auditLog.groupBy({

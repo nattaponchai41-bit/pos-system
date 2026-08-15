@@ -1,11 +1,6 @@
 import 'dotenv/config'
-import { PrismaClient } from '../src/generated/prisma/client'
-import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+import { prisma } from '../src/lib/prisma'
 import bcrypt from 'bcrypt'
-
-const prisma = new PrismaClient({
-  adapter: new PrismaMariaDb(process.env.DATABASE_URL!),
-})
 
 const PERMISSIONS = [
   { code: 'SALE_CREATE', label: 'ขายสินค้า', category: 'การขาย' },

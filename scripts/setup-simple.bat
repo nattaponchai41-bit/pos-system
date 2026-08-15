@@ -88,16 +88,26 @@ if %errorlevel% neq 0 (
 )
 echo  OK - Database %DB_NAME% ready.
 
+REM Configure MySQL max_connections
+echo [6/8] Tuning MySQL for POS System...
+call scripts\tune-mysql.bat "%MYSQL_BIN%" >"%LOG_DIR%\tune-mysql.log" 2>&1
+if %errorlevel% neq 0 (
+    echo  WARNING: Could not tune MySQL. You may need to set max_connections manually.
+    type "%LOG_DIR%\tune-mysql.log"
+) else (
+    echo  OK - MySQL max_connections configured.
+)
+
 REM Create .env
-echo [6/8] Creating .env file...
+echo [7/9] Creating .env file...
 if exist "%APP_DIR%\.env" (
     echo  OK - .env already exists.
 ) else (
     for /f "tokens=*" %%a in ('node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"') do set "NEXTAUTH_SECRET=%%a"
     if "%DB_PASS%"=="" (
-        echo DATABASE_URL="mysql://%DB_USER%:@%DB_HOST%:%DB_PORT%/%DB_NAME%" > "%APP_DIR%\.env"
+        echo DATABASE_URL="mysql://%DB_USER%:@%DB_HOST%:%DB_PORT%/%DB_NAME%?connection_limit=20" > "%APP_DIR%\.env"
     ) else (
-        echo DATABASE_URL="mysql://%DB_USER%:%DB_PASS%@%DB_HOST%:%DB_PORT%/%DB_NAME%" > "%APP_DIR%\.env"
+        echo DATABASE_URL="mysql://%DB_USER%:%DB_PASS%@%DB_HOST%:%DB_PORT%/%DB_NAME%?connection_limit=20" > "%APP_DIR%\.env"
     )
     echo NEXTAUTH_URL="%NEXTAUTH_URL%" >> "%APP_DIR%\.env"
     echo NEXTAUTH_SECRET="%NEXTAUTH_SECRET%" >> "%APP_DIR%\.env"
@@ -105,7 +115,7 @@ if exist "%APP_DIR%\.env" (
 )
 
 REM Install dependencies and setup database
-echo [7/8] Installing dependencies and setting up database...
+echo [8/10] Installing dependencies and setting up database...
 npm install >"%LOG_DIR%\npm-install.log" 2>&1
 if %errorlevel% neq 0 (
     echo  ERROR: npm install failed.
@@ -149,7 +159,7 @@ if %TABLE_COUNT% gtr 0 (
 )
 
 REM Build production
-echo [8/8] Building production application...
+echo [9/10] Building production application...
 npm run build >"%LOG_DIR%\npm-build.log" 2>&1
 if %errorlevel% neq 0 (
     echo  ERROR: npm run build failed.
