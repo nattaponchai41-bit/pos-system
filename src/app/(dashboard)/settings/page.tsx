@@ -64,6 +64,9 @@ export default function SettingsPage() {
 
   function updateField<K extends keyof StoreSetting>(key: K, value: StoreSetting[K]) {
     if (!setting) return
+    // Prevent editing store identity fields after installation
+    const readonlyKeys: (keyof StoreSetting)[] = ['storeName', 'storeAddress', 'storePhone', 'storeTaxId']
+    if (readonlyKeys.includes(key)) return
     setSetting({ ...setting, [key]: value })
   }
 
@@ -177,106 +180,111 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-bold text-slate-900">ข้อมูลร้านค้า</h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="rounded-lg bg-amber-50 border border-amber-100 p-4 mb-5">
+                  <p className="text-sm font-medium text-amber-800">
+                    ข้อมูลร้านค้าหลัก (ชื่อร้าน, ที่อยู่, เบอร์โทร, เลขผู้เสียภาษี) ตั้งค่าครั้งแรกที่หน้าติดตั้งเท่านั้น
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-slate-500">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">ชื่อร้าน</label>
+                    <label className="block text-sm font-medium mb-1.5">ชื่อร้าน</label>
                     <input
                       value={setting.storeName}
-                      onChange={(e) => updateField('storeName', e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition"
-                      required
+                      disabled
+                      className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 cursor-not-allowed"
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">ที่อยู่</label>
+                    <label className="block text-sm font-medium mb-1.5">ที่อยู่</label>
                     <textarea
                       value={setting.storeAddress ?? ''}
-                      onChange={(e) => updateField('storeAddress', e.target.value || null)}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition"
+                      disabled
+                      className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 cursor-not-allowed"
                       rows={2}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">โทรศัพท์</label>
+                    <label className="block text-sm font-medium mb-1.5">โทรศัพท์</label>
                     <input
                       value={setting.storePhone ?? ''}
-                      onChange={(e) => updateField('storePhone', e.target.value || null)}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition"
+                      disabled
+                      className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 cursor-not-allowed"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">เลขประจำตัวผู้เสียภาษี</label>
+                    <label className="block text-sm font-medium mb-1.5">เลขประจำตัวผู้เสียภาษี</label>
                     <input
                       value={setting.storeTaxId ?? ''}
-                      onChange={(e) => updateField('storeTaxId', e.target.value || null)}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition"
+                      disabled
+                      className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 cursor-not-allowed"
                     />
                   </div>
+                </div>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">โลโก้ร้าน</label>
-                    <div
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleLogoDrop}
-                      className="flex items-start gap-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-blue-400"
-                    >
-                      <div className="flex-1 space-y-3">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) handleLogoUpload(file)
-                          }}
-                          className="hidden"
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">โลโก้ร้าน</label>
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleLogoDrop}
+                    className="flex items-start gap-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-blue-400"
+                  >
+                    <div className="flex-1 space-y-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleLogoUpload(file)
+                        }}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={logoUploading}
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+                      >
+                        {logoUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            กำลังอัปโหลด...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            เลือกไฟล์รูปภาพ
+                          </>
+                        )}
+                      </button>
+                      <p className="text-xs text-slate-500">รองรับ PNG, JPG, WebP ขนาดไม่เกิน 5MB</p>
+                    </div>
+
+                    {setting.logoUrl ? (
+                      <div className="relative">
+                        <img
+                          src={setting.logoUrl}
+                          alt="Store logo"
+                          className="h-20 w-20 object-contain rounded-lg border bg-white"
                         />
                         <button
                           type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={logoUploading}
-                          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+                          onClick={() => updateField('logoUrl', null)}
+                          className="absolute -top-2 -right-2 rounded-full bg-red-600 text-white p-1 shadow hover:bg-red-700 transition"
+                          title="ลบโลโก้"
                         >
-                          {logoUploading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              กำลังอัปโหลด...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-4 h-4" />
-                              เลือกไฟล์รูปภาพ
-                            </>
-                          )}
+                          <X className="w-3 h-3" />
                         </button>
-                        <p className="text-xs text-slate-500">รองรับ PNG, JPG, WebP ขนาดไม่เกิน 5MB</p>
                       </div>
-
-                      {setting.logoUrl ? (
-                        <div className="relative">
-                          <img
-                            src={setting.logoUrl}
-                            alt="Store logo"
-                            className="h-20 w-20 object-contain rounded-lg border bg-white"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => updateField('logoUrl', null)}
-                            className="absolute -top-2 -right-2 rounded-full bg-red-600 text-white p-1 shadow hover:bg-red-700 transition"
-                            title="ลบโลโก้"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="h-20 w-20 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-400 text-xs text-center">
-                          ไม่มีโลโก้
-                        </div>
-                      )}
-                    </div>
+                    ) : (
+                      <div className="h-20 w-20 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-400 text-xs text-center">
+                        ไม่มีโลโก้
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>

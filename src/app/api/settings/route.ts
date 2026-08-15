@@ -8,10 +8,8 @@ const nullableString = z.union([z.string(), z.literal(''), z.null()]).optional()
 const nullableBoolean = z.union([z.boolean(), z.literal(''), z.null()]).optional()
 
 const settingUpdateSchema = z.object({
-  storeName: z.union([z.string().min(1), z.literal(''), z.null()]).optional(),
-  storeAddress: nullableString,
-  storePhone: nullableString,
-  storeTaxId: nullableString,
+  // Store identity fields are intentionally omitted — they are set once during /install
+  // storeName, storeAddress, storePhone, storeTaxId
   logoUrl: nullableString,
   currency: z.union([z.string(), z.literal(''), z.null()]).optional(),
   currencySymbol: z.union([z.string(), z.literal(''), z.null()]).optional(),
